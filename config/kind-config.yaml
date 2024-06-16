@@ -1,0 +1,35 @@
+## TIPS: calico the hard way 와 동일한 pod-network-cidr을 사용하도록 설정
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  apiServerAddress: "0.0.0.0"
+  ## kind에서 기본 제공하는 CNI인 kindnet을 설치하지 않도록 설정
+  disableDefaultCNI: true
+  apiServerPort: 6443
+kubeadmConfigPatches:
+  - |
+    apiVersion: kubeadm.k8s.io/v1beta2
+    kind: ClusterConfiguration
+    metadata:
+      name: config
+    networking:
+      serviceSubnet: "10.96.0.1/12"
+      podSubnet: "192.168.0.0/16"
+nodes:
+  - role: control-plane
+    extraMounts:
+    - hostPath: ./calico
+      containerPath: /tmp/calico
+    # enable node port range
+    extraPortMappings:
+    - containerPort: 30950
+      hostPort: 30950
+      protocol: TCP
+  - role: worker
+    extraMounts:
+      - hostPath: ./calico
+        containerPath: /tmp/calico
+  - role: worker
+    extraMounts:
+      - hostPath: ./calico
+        containerPath: /tmp/calico
